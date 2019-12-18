@@ -5,7 +5,7 @@ from std_msgs.msg import Int32MultiArray
 from motordriver import MotorDriver
 #from linedetector import LineDetector
 #from obstacledetector import ObstacleDetector
-from colorDectector import ColorDectector
+from colorDectector import ColorDetector
 import time
 
 
@@ -13,47 +13,25 @@ class AutoDrive:
 
     def __init__(self):
         rospy.init_node('xycar_driver')
-        #self.line_detector = LineDetector('/usb_cam/image_raw')
+        self.color_detector = ColorDetector('/usb_cam/image_raw')
         #self.obstacle_detector = ObstacleDetector('/ultrasonic')
-        self.color_detector = ColorDectector()
+        #self.color_detector = ColorDectector()
         self.driver = MotorDriver('/xycar_motor_msg')
-        self.savedata = [0]
-        self.save_obs = 130
-
+        #self.savedata = [0]
+        #self.save_obs = 130
     def trace(self):
-        cir_x, cir_y, cir_r = self.color_detector.fine_red()
-
-        if cir_r > 기준 반지름:
-
-            if 중심선 - 10 <= cir_x <= 중심선 + 10: # 느린 직진
-                angle = 0
-                speed =
-
-            elif cir_x < 중심선 - 10:진 # 느린 좌회전
-                angle =
-                speed =
-
-            elif cir_x > 중심선 + 10:전 # 느린 우회전
-
-        elif cir_r <= 기준 반지름:
-
-            if 중심선 - 10 <= cir_x <= 중심선 + 10: # 빠른 직진
-                angle = 0
-                speed =
-
-            elif cir_x < 중심선 - 10: # 빠른 좌회전
-                angle =
-                speed =
-
-            elif cir_x > 중심선 + 10: # 빠른 우호전
-                angle =
-                speed =
-
-        elif cir_r >= 초과 반지름: # 정지 후 후진
-            angle =
-            speed =
-
-        self.driver.drive(90 + angle, 90 + speed)
+        cir_x, cir_r = self.color_detector.run()
+        if (cir_x != None):
+            if cir_r < 40:
+                angle = 90 + float(50) / 320 * (cir_x -320)
+                speed = 125
+            else:
+                angle = 90
+                speed = 90
+        else:
+            angle = 90
+            speed = 90
+        self.driver.drive(angle, speed)
 
     def exit(self):
         print('finished')
